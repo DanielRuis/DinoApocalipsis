@@ -1,39 +1,60 @@
 import socket
-#import threading
-#import json
+from _thread import *
+import sys
 
-# Configuración del servidor
-host = 'localhost'
-port = 8200
-max_conexiones = 3
+''' Poner direccion ip en la que esta conectado esta pc ipconfig IPv4'''
+server = "192.168.56.1"
+port = 5555
 
-# Crea el socket del servidor
-servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-servidor.bind((host, port))
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Espera conexiones de los clientes
-servidor.listen(max_conexiones)
-print('Servidor esperando conexiones...')
+try:
+    s.bind((server, port))
+except socket.error as e:
+    str(e)
 
-# Lista de clientes conectados
-clientes = []
+s.listen(2)
+print("Esperando una conexion, servidor inicializado")
 
-# Espera conexiones de los clientes
+def read_pos(str):
+    str = str.split(",")
+    return int(str[0]), int(str[1])
+
+def make_pos(tup):
+    return str(tup[0]) + "," + str(tup[1])
+
+pos = [(0,0),(100,100)]
+def threaded_client(conn, player):
+    conn.send(str.encode(make_pos(pos[player])))
+    reply = ""
+    while True:
+        try: 
+            data = read_pos(conn.recv(2048).decode())
+            pos[player] = data
+
+            if not data:
+                print("Desconectado")
+                break
+            else:
+                if player == 1:
+                    reply = pos[0]
+                else:
+                    reply = pos[1]
+                    
+                print("Recibido", data)
+                print("Enviando", reply)
+            
+            conn.sendall(str.encode(make_pos(reply)))
+        except:
+            break
+
+    print("Conexion perdida")
+    conn.close()
+
+currentPlayer = 0
 while True:
-    # Acepta la conexión del cliente
-    cliente, direccion = servidor.accept()
-    print(f'Jugador {direccion}, dentro')
+    conn, addr = s.accept()
+    print("Conectado a:",addr)
 
-    #Le envaimos al cliente un mensaje de conexion establecida
-    mensaje = "Estas dentro!"
-    cliente.send(mensaje.encode())
-    
-    # Agrega el cliente a la lista de clientes conectados
-    clientes.append(cliente)
-    
-    # Verifica que se hayan conectado todos los clientes
-    if len(clientes) == max_conexiones:
-        break
-
-print('Todos los clientes se han conectado. Iniciando el juego...')
-
+    start_new_thread(threaded_client, (conn, currentPlayer))
+    currentPlayer += 1
