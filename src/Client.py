@@ -101,7 +101,7 @@ def redrawWindow(win, player, player2):
     player2.draw(win)
 
     dibujar_piso(piso_posicion_x, piso_posicion_y)
-
+    #win.blit(suelo_image, (0,0))
     pygame.display.update()
 
 # Función principal del programa
