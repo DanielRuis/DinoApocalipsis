@@ -3,7 +3,7 @@ from _thread import *
 import sys
 
 ''' Poner direccion ip en la que esta conectado esta pc ipconfig IPv4'''
-server = "localhost"
+server = "192.168.56.1"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
