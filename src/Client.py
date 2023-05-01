@@ -1,8 +1,43 @@
 import pygame
 import socket
+import random
+import time
+
 suelo_image = pygame.image.load("../assets/suelo.png")
 fondo_image = pygame.image.load("../assets/fondo.png")
 pygame.init()
+
+# Clase para manejar los objetos que caen
+class Objeto():
+    def __init__(self, x, y, width, height, color, speed):
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
+            self.color = color
+            self.rect = pygame.Rect(x, y, width, height)
+            self.speed = speed
+
+    def draw(self, win):
+        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
+
+    def update(self):
+        self.y += self.speed
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+# Función para generar nuevos objetos aleatorios
+def generar_objetos(objetos, cantidad):
+    for i in range(cantidad):
+        x = random.randint(0, width-50)
+        y = random.randint(-200, -50)
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        speed = random.randint(1, 5)
+        objeto = Objeto(x, y, 50, 50, color, speed)
+        objetos.append(objeto)
+
+
+
+
 # Clase para manejar la conexión de red
 class Network:
     def __init__(self):
@@ -35,6 +70,10 @@ height = 600
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
 
+# Definir la lista de objetos y el temporizador de velocidad
+objetos = []
+velocidad = 1
+temporizador = time.time()
 
 jugador_posicion_x = 0
 jugador_posicion_y = 470
@@ -107,12 +146,14 @@ def make_pos(tup):
 
 # Función para dibujar los elementos en pantalla
 def redrawWindow(win, player, player2):
+    generar_objetos(objetos, 5)
+
     # Dibujar la imagen de fondo
-    win.blit(fondo_image, (0, 0))
+    #win.blit(fondo_image, (0, 0))
 
     player.draw(win)
     player2.draw(win)
-
+    
     dibujar_piso(piso_posicion_x, piso_posicion_y)
     #win.blit(suelo_image, (0,0))
     pygame.display.update()
@@ -132,13 +173,16 @@ def main():
 
     p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, "yo")
     p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image,"rival")
-    pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
-    pygame.mixer.music.play(loops=-1)
+    #pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
+    #pygame.mixer.music.play(loops=-1)
 
 
     p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, DV_text)
     p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image, DM_text)
+    objeto = Objeto(x=100, y=50, width=30, height=30, color=(255, 0, 0), speed=3)
+    
     clock = pygame.time.Clock()
+
 
     while run:
         clock.tick(60)
@@ -148,15 +192,27 @@ def main():
         p2.x = p2Pos[0]
         p2.y = p2Pos[1]
         p2.update()
+        objeto.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
 
+
+        objeto.draw(win)
+
         # Mover al jugador local
         p.move()
+        # Enviar la posición del jugador local al servidor
+        n.send(make_pos((p.x, p.y)))
+        # Recibir la posición del jugador remoto del servidor
+        p2.x = p2Pos[0]
+        p2.y = p2Pos[1]
+        p2.update()
+
         # Dibujar los elementos en pantalla
         redrawWindow(win, p, p2)
+
 pygame.mixer.init()
 main()
