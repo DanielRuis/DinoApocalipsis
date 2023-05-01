@@ -5,7 +5,7 @@ suelo_image = pygame.image.load("suelo.png")
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "192.168.56.1"
+        self.server = "localhost"
         self.port = 5555
         self.addr = (self.server, self.port)
         self.pos = self.connect()
@@ -35,7 +35,7 @@ pygame.display.set_caption("Client")
 
 
 jugador_posicion_x = 0
-jugador_posicion_y = 450
+jugador_posicion_y = 470
 
 # Definir la posición y el tamaño del piso
 piso_posicion_x = 0
@@ -52,7 +52,7 @@ def dibujar_piso(x, y):
 
 # Clase para manejar los jugadores
 class Player():
-    def __init__(self, x, y, width, height, color,image):
+    def __init__(self, x, y, width, height, color, image):
             self.x = x
             self.y = y
             self.width = width
