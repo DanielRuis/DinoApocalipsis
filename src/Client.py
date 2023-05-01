@@ -1,6 +1,7 @@
 import pygame
 import socket
 suelo_image = pygame.image.load("../assets/suelo.png")
+fondo_image = pygame.image.load("../assets/fondo.png")
 pygame.init()
 # Clase para manejar la conexión de red
 class Network:
@@ -106,7 +107,8 @@ def make_pos(tup):
 
 # Función para dibujar los elementos en pantalla
 def redrawWindow(win, player, player2):
-    win.fill((128, 128, 128))
+    # Dibujar la imagen de fondo
+    win.blit(fondo_image, (0, 0))
 
     player.draw(win)
     player2.draw(win)
@@ -128,8 +130,8 @@ def main():
     DV_image = pygame.image.load("../assets/DV.png")
     DM_image = pygame.image.load("../assets/DM.png")
 
-    p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image)
-    p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image)
+    p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, "yo")
+    p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image,"rival")
     pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
     pygame.mixer.music.play(loops=-1)
 
