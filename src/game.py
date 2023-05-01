@@ -1,140 +1,149 @@
 import pygame
-import random
+import socket
 
-# Inicializar Pygame
-pygame.init()
+# Clase para manejar la conexión de red
+class Network:
+    def __init__(self):
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server = "192.168.56.1"
+        self.port = 5555
+        self.addr = (self.server, self.port)
+        self.pos = self.connect()
 
-# Definir los colores
-NEGRO = (0, 0, 0)
-BLANCO = (255, 255, 255)
-ROJO = (255, 0, 0)
+    def getPos(self):
+        return self.pos
+
+    def connect(self):
+        try:
+            self.client.connect(self.addr)
+            return self.client.recv(2048).decode()
+        except:
+            pass
+
+    def send(self, data):
+        try:
+            self.client.send(str.encode(data))
+            return self.client.recv(2048).decode()
+        except socket.error as e:
+            print(e)
 
 # Definir la pantalla
-pantalla = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Juego de plataforma")
+width = 500
+height = 600
+win = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Client")
 
-# Definir el reloj para controlar la velocidad de los fotogramas
-reloj = pygame.time.Clock()
+# Clase para manejar los jugadores
+class Player():
+    def __init__(self, x, y, width, height, color):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.rect = pygame.Rect(x, y, width, height)
+        self.vel = 3
 
-# Definir la posición y la velocidad del jugador
-jugador_ancho = 50
-jugador_alto = 50
-jugador_posicion_x = 375
-jugador_posicion_y = 525
-jugador_velocidad = 0
+    def draw(self, win):
+        pygame.draw.rect(win, self.color, self.rect)
 
-# Definir la posición y el tamaño del piso
-piso_ancho = 800
-piso_alto = 50
-piso_posicion_x = 0
-piso_posicion_y = 575
+    def move(self):
+        keys = pygame.key.get_pressed()
 
-# Definir la posición, el tamaño y la velocidad de los meteoritos
-meteorito_ancho = 50
-meteorito_alto = 50
-meteorito_posiciones_x = []
-meteorito_posiciones_y = []
-meteorito_velocidades = []
-num_meteoritos = 10
-velocidad_meteoritos = 2
-for i in range(num_meteoritos):
-    meteorito_posiciones_x.append(random.randint(0, 750))
-    meteorito_posiciones_y.append(random.randint(-200, -50))
-    meteorito_velocidades.append(velocidad_meteoritos)
+        if keys[pygame.K_LEFT]:
+            self.x -= self.vel
+        if keys[pygame.K_RIGHT]:
+            self.x += self.vel
 
-# Definir el contador de vidas
-vidas = 3
+        # Limitar la posición del jugador a la pantalla
+        if self.x < 0:
+            self.x = 0
+        elif self.x > width - self.width:
+            self.x = width - self.width
 
-# Definir el nivel de dificultad
-nivel = "Fácil"
+        self.update()
 
-# Función para dibujar el jugador en la pantalla
-def dibujar_jugador(x, y):
-    pygame.draw.rect(pantalla, BLANCO, [x, y, jugador_ancho, jugador_alto])
+    def update(self):
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+#Clase para la pantalla de carga
+class LoadingScreen():
+    def __init__(self, text, font_size, x, y):
+        self.text = text
+        self.font_size = font_size
+        self.x = x
+        self.y = y
+        self.font = pygame.font.SysFont(None, self.font_size)
+        self.surface = self.font.render(self.text, True, (255, 255, 255))
 
-# Función para dibujar el piso en la pantalla
-def dibujar_piso(x, y):
-    pygame.draw.rect(pantalla, BLANCO, [x, y, piso_ancho, piso_alto])
+    def draw(self, win):
+        win.blit(self.surface, (self.x, self.y))
 
-# Función para dibujar los meteoritos en la pantalla
-def dibujar_meteoritos():
-    for i in range(num_meteoritos):
-        pygame.draw.rect(pantalla, ROJO, [meteorito_posiciones_x[i], meteorito_posiciones_y[i], meteorito_ancho, meteorito_alto])
-        
-# Bucle principal del juego
-terminado = False
-while not terminado:
-    # Manejar eventos
-    for evento in pygame.event.get():
-        if evento.type == pygame.QUIT:
-            terminado = True
-        elif evento.type == pygame.KEYDOWN:
-            if evento.key == pygame.K_LEFT:
-                jugador_velocidad = -5
-            elif evento.key == pygame.K_RIGHT:
-                jugador_velocidad = 5
-        elif evento.type == pygame.KEYUP:
-            if evento.key == pygame.K_LEFT or evento.key == pygame.K_RIGHT:
-                jugador_velocidad = 0
+# Funciones para convertir las posiciones de texto a tuplas y viceversa
+def read_pos(str):
+    str = str.split(",")
+    return int(str[0]), int(str[1])
 
-    # Mover el jugador
-    jugador_posicion_x += jugador_velocidad
+def make_pos(tup):
+    return str(tup[0]) + "," + str(tup[1])
 
-    # Mover los meteoritos y comprobar si colisionan
-    for i in range(num_meteoritos):
-        meteorito_posiciones_y[i] += meteorito_velocidades[i]
-        if meteorito_posiciones_y[i] > 600:
-            meteorito_posiciones_x[i] = random.randint(0, 750)
-            meteorito_posiciones_y[i] = random.randint(-200, -50)
-            meteorito_velocidades[i] = velocidad_meteoritos
-        if jugador_posicion_x < meteorito_posiciones_x[i] + meteorito_ancho and \
-           jugador_posicion_x + jugador_ancho > meteorito_posiciones_x[i] and \
-           jugador_posicion_y < meteorito_posiciones_y[i] + meteorito_alto and \
-           jugador_posicion_y + jugador_alto > meteorito_posiciones_y[i]:
-            vidas -= 1
-            meteorito_posiciones_x[i] = random.randint(0, 750)
-            meteorito_posiciones_y[i] = random.randint(-200, -50)
-            meteorito_velocidades[i] = velocidad_meteoritos
-        if nivel == "Medio":
-            velocidad_meteoritos = 3
-            if vidas < 3:
-                vidas += 1
-        elif nivel == "Difícil":
-            velocidad_meteoritos = 4
-            if vidas < 3:
-                vidas += 1
-        if meteorito_posiciones_y[i] > 525:
-            meteorito_posiciones_x[i] = random.randint(0, 750)
-            meteorito_posiciones_y[i] = random.randint(-200, -50)
-            meteorito_velocidades[i] = velocidad_meteoritos
-            vidas -= 1
+# Función para dibujar los elementos en pantalla
+def redrawWindow(win, player, player2):
+    win.fill((128, 128, 128))
+    player.draw(win)
+    player2.draw(win)
+    pygame.display.update()  
 
-    # Dibujar el fondo
-    pantalla.fill(NEGRO)
+# Función principal del programa
+def main():
+    run = True
+    n = Network()
 
-    # Dibujar el piso, el jugador, los meteoritos y el contador de vidas
-    dibujar_piso(piso_posicion_x, piso_posicion_y)
-    dibujar_jugador(jugador_posicion_x, jugador_posicion_y)
-    dibujar_meteoritos()
-    fuente = pygame.font.SysFont("arial", 20)
-    texto_vidas = fuente.render("Vidas: " + str(vidas), True, BLANCO)
-    pantalla.blit(texto_vidas, (10, 10))
+    # Crear la pantalla de carga
+    loading_text = LoadingScreen("Esperando a que se conecte el otro jugador...", 30, 100, 200)
 
-    # Actualizar el nivel de dificultad
-    if vidas == 0:
-        nivel = "Fácil"
-        vidas = 3
-        velocidad_meteoritos = 2
-    elif vidas == 1 or vidas == 2:
-        nivel = "Medio"
-    elif vidas == 3:
-        nivel = "Difícil"
+    # Mostrar la pantalla de carga mientras se espera a que los dos jugadores se conecten
+    connected = False
+    while not connected:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
 
-    # Actualizar la pantalla
-    pygame.display.flip()
+        # Verificar si se ha recibido un mensaje del otro jugador
+        data = n.client.recv(2048).decode()
+        if data == 'Connected':
+            connected = True
 
-    # Controlar la velocidad de los fotogramas
-    reloj.tick(60)
+        # Dibujar la pantalla de carga
+        loading_text.draw(win)
+        pygame.display.update()
 
-# Salir de Pygame
-pygame.quit()
+    # Iniciar el juego cuando ambos jugadores estén conectados
+    p = Player(0, 500, 50, 100, (180, 255, 255))
+    p2 = Player(200, 500, 50, 100, (0, 0, 0))
+
+    clock = pygame.time.Clock()
+
+    while run:
+        clock.tick(60)
+
+        # Actualizar la posición del jugador remoto
+        p2Pos = read_pos(n.send(make_pos((p.x, p.y))))
+        p2.x = p2Pos[0]
+        p2.y = p2Pos[1]
+        p2.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+
+        # Mover al jugador local
+        p.move()
+
+        # Dibujar los elementos en pantalla
+        redrawWindow(win, p, p2)
+
+    pygame.quit()
+
+main()
