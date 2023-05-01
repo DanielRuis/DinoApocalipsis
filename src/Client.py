@@ -53,17 +53,18 @@ def dibujar_piso(x, y):
 # Clase para manejar los jugadores
 class Player():
     def __init__(self, x, y, width, height, color):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.color = color
-        self.rect = pygame.Rect(x, y, width, height)
-        self.vel = 3
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
+            self.color = color
+            self.image = image
+            self.rect = pygame.Rect(x, y, width, height)
+            self.vel = 3
 
     def draw(self, win):
         dibujar_piso(piso_posicion_x, piso_posicion_y)
-        pygame.draw.rect(win, self.color, self.rect)
+        win.blit(self.image, (self.x, self.y))
 
     def move(self):
         keys = pygame.key.get_pressed()
@@ -108,9 +109,11 @@ def main():
     startPos = read_pos(n.getPos())   
     # p = Player(startPos[0], startPos[1], 100, 100, (180, 255, 0))
     # posicion del player
-    p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255))
-    p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0))
+    DV_image = pygame.image.load("DV.png")
+    DM_image = pygame.image.load("DM.png")
 
+    p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image)
+    p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image)
     clock = pygame.time.Clock()
 
     while run:
