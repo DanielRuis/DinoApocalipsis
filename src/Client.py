@@ -1,6 +1,6 @@
 import pygame
 import socket
-
+suelo_image = pygame.image.load("suelo.png")
 # Clase para manejar la conexión de red
 class Network:
     def __init__(self):
@@ -47,12 +47,12 @@ ROJO = (255, 0, 0)
 
 # Función para dibujar el piso en la pantalla
 def dibujar_piso(x, y):
-    pygame.draw.rect(win, ROJO, [x, y, piso_ancho, piso_alto])
+   win.blit(suelo_image, (x, y))
 
 
 # Clase para manejar los jugadores
 class Player():
-    def __init__(self, x, y, width, height, color):
+    def __init__(self, x, y, width, height, color,image):
             self.x = x
             self.y = y
             self.width = width
@@ -99,7 +99,10 @@ def redrawWindow(win, player, player2):
 
     player.draw(win)
     player2.draw(win)
-    pygame.display.update()  
+
+    dibujar_piso(piso_posicion_x, piso_posicion_y)
+
+    pygame.display.update()
 
 # Función principal del programa
 def main():
