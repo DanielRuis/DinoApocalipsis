@@ -35,7 +35,7 @@ pygame.display.set_caption("Client")
 
 
 jugador_posicion_x = 0
-jugador_posicion_y = 465
+jugador_posicion_y = 470
 
 # Definir la posición y el tamaño del piso
 piso_posicion_x = 0
