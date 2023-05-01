@@ -28,10 +28,27 @@ class Network:
             print(e)
 
 # Definir la pantalla
-width = 500
+width = 800
 height = 600
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
+
+
+jugador_posicion_x = 0
+jugador_posicion_y = 450
+
+# Definir la posición y el tamaño del piso
+piso_posicion_x = 0
+piso_posicion_y = 550
+piso_ancho = 800
+piso_alto = 50
+
+ROJO = (255, 0, 0)
+
+# Función para dibujar el piso en la pantalla
+def dibujar_piso(x, y):
+    pygame.draw.rect(win, ROJO, [x, y, piso_ancho, piso_alto])
+
 
 # Clase para manejar los jugadores
 class Player():
@@ -45,6 +62,7 @@ class Player():
         self.vel = 3
 
     def draw(self, win):
+        dibujar_piso(piso_posicion_x, piso_posicion_y)
         pygame.draw.rect(win, self.color, self.rect)
 
     def move(self):
@@ -77,19 +95,21 @@ def make_pos(tup):
 # Función para dibujar los elementos en pantalla
 def redrawWindow(win, player, player2):
     win.fill((128, 128, 128))
+
     player.draw(win)
     player2.draw(win)
     pygame.display.update()  
 
 # Función principal del programa
 def main():
+
     run = True
     n = Network()
     startPos = read_pos(n.getPos())   
     # p = Player(startPos[0], startPos[1], 100, 100, (180, 255, 0))
     # posicion del player
-    p = Player(0, 500, 50, 100, (180, 255, 255))
-    p2 = Player(200, 500, 50, 100, (0, 0, 0))
+    p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255))
+    p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0))
 
     clock = pygame.time.Clock()
 
@@ -109,7 +129,6 @@ def main():
 
         # Mover al jugador local
         p.move()
-
         # Dibujar los elementos en pantalla
         redrawWindow(win, p, p2)
 
