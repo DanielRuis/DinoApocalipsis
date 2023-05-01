@@ -1,6 +1,11 @@
 import pygame
 import socket
+<<<<<<< HEAD
 suelo_image = pygame.image.load("../assets/suelo.png")
+=======
+pygame.init()
+suelo_image = pygame.image.load("suelo.png")
+>>>>>>> 21def58419b8a5fe76c5761e2dd7e89081d69671
 # Clase para manejar la conexión de red
 class Network:
     def __init__(self):
@@ -52,7 +57,7 @@ def dibujar_piso(x, y):
 
 # Clase para manejar los jugadores
 class Player():
-    def __init__(self, x, y, width, height, color, image):
+    def __init__(self, x, y, width, height, color, image,text):
             self.x = x
             self.y = y
             self.width = width
@@ -61,18 +66,28 @@ class Player():
             self.image = image
             self.rect = pygame.Rect(x, y, width, height)
             self.vel = 3
+            self.facing_left = False
+            self.text = text
+
+
 
     def draw(self, win):
         dibujar_piso(piso_posicion_x, piso_posicion_y)
-        win.blit(self.image, (self.x, self.y))
+        win.blit(self.text, (self.x + 10, self.y - 30))  # Dibujar el texto en la pantalla
+        if self.facing_left:
+            win.blit(pygame.transform.flip(self.image, True, False), (self.x, self.y))
+        else:
+            win.blit(self.image, (self.x, self.y))
 
     def move(self):
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_LEFT]:
             self.x -= self.vel
+            self.facing_left = True
         if keys[pygame.K_RIGHT]:
             self.x += self.vel
+            self.facing_left = False
 
         # Limitar la posición del jugador a la pantalla
         if self.x < 0:
@@ -111,14 +126,23 @@ def main():
     n = Network()
     startPos = read_pos(n.getPos())   
     # p = Player(startPos[0], startPos[1], 100, 100, (180, 255, 0))
+    DV_text = pygame.font.SysFont('comicsans', 20).render('TU', True, (255, 255, 255))
+    DM_text = pygame.font.SysFont('comicsans', 20).render('OTRO', True, (255, 255, 255))
     # posicion del player
     DV_image = pygame.image.load("../assets/DV.png")
     DM_image = pygame.image.load("../assets/DM.png")
 
+<<<<<<< HEAD
     p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image)
     p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image)
     pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
     pygame.mixer.music.play(loops=-1)
+=======
+
+
+    p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, DV_text)
+    p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image, DM_text)
+>>>>>>> 21def58419b8a5fe76c5761e2dd7e89081d69671
     clock = pygame.time.Clock()
 
     while run:
