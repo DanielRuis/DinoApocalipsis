@@ -137,4 +137,5 @@ while not terminado:
     reloj.tick(60)
 
 # Salir de Pygame
+print(reloj)
 pygame.quit()
