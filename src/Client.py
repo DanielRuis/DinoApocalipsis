@@ -1,15 +1,16 @@
 import pygame
 import socket
 import obstaculos
+import random
 
-
-
+meteorito_img = pygame.image.load("../assets/met.png")
 suelo_image = pygame.image.load("../assets/suelo.png")
 fondo_image = pygame.image.load("../assets/fondo.png")
 pygame.init()
 
 # def jugar_obstaculos():
 #     obstaculos.juego_de_objetos_que_caen()
+
 
 
 # Clase para manejar la conexión de red
@@ -54,8 +55,31 @@ piso_posicion_y = 550
 piso_ancho = 800
 piso_alto = 50
 
+
 ROJO = (255, 0, 0)
 
+# Meteoritos
+class Meteorito(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = meteorito_img
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(0, width - self.rect.width)
+        self.rect.y = -self.rect.height
+        self.velocidad = random.randint(1, 5)
+
+    def update(self):
+        self.rect.y += self.velocidad
+        if self.rect.y > height:
+            self.rect.x = random.randrange(0, width - self.rect.width)
+            self.rect.y = -self.rect.height
+            self.velocidad = random.randint(1, 5)
+
+meteoros = pygame.sprite.Group()
+for _ in range(5):
+    meteoros.add(Meteorito())
+
+    
 # Función para dibujar el piso en la pantalla
 def dibujar_piso(x, y):
    win.blit(suelo_image, (x, y))
@@ -79,7 +103,9 @@ class Player():
 
     def draw(self, win):
         
-        obstaculos.dibujar_obstaculos(win)
+        #obstaculos.dibujar_obstaculos(win)
+        meteoros.update()
+        meteoros.draw(win)
 
         dibujar_piso(piso_posicion_x, piso_posicion_y)
         win.blit(self.text, (self.x + 10, self.y - 30))  # Dibujar el texto en la pantalla
@@ -121,8 +147,7 @@ def make_pos(tup):
 def redrawWindow(win, player, player2):
     
     # Dibujar la imagen de fondo
-    win.blit(fondo_image, (0, 0))
-
+    win.blit(fondo_image, (0, 0))    
 
     player.draw(win)
     player2.draw(win)

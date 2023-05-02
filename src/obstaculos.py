@@ -75,21 +75,21 @@ class Obstaculos(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.Surface((50, 50))
-        self.image.fill((255, 0, 0))
+        self.image.fill((255, 10, 0))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.velocidad_y = 0.5  # velocidad vertical inicial
+        self.velocidad_y = 0.1  # velocidad vertical inicial
     
     def update(self):
         self.rect.y += self.velocidad_y  # actualizar posición vertical
-        self.velocidad_y += 0.5  # aumentar velocidad vertical
+        self.velocidad_y += 0.1  # aumentar velocidad vertical
 
 def generar_obstaculos(num_obstaculos, pantalla_ancho, pantalla_alto):
     obstaculos = pygame.sprite.Group()
     for i in range(num_obstaculos):
-        x = random.randint(0, pantalla_ancho - 50)
-        y = random.randint(0, pantalla_alto - 50)
+        x = random.randint(0, pantalla_ancho - 10)
+        y = random.randint(0, pantalla_alto - 10)
         obstaculo = Obstaculos(x, y)
         obstaculos.add(obstaculo)
     return obstaculos
