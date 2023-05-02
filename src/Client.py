@@ -2,6 +2,8 @@ import pygame
 import socket
 suelo_image = pygame.image.load("../assets/suelo.png")
 fondo_image = pygame.image.load("../assets/fondo.png")
+meteorito_image = pygame.image.load("../assets/met.png")
+
 pygame.init()
 # Clase para manejar la conexión de red
 class Network:
