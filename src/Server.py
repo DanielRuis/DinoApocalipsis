@@ -34,6 +34,7 @@ def threaded_client(conn, player):
 
             if not data:
                 print("Desconectado")
+                quit()
                 break
             else:
                 if player == 1:
@@ -50,6 +51,7 @@ def threaded_client(conn, player):
 
     print("Conexion perdida")
     conn.close()
+    quit()
 
 currentPlayer = 0
 while True:
