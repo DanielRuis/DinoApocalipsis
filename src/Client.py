@@ -1,38 +1,11 @@
 import pygame
-import socket
 import random
+from network import Network
 
 meteorito_img = pygame.image.load("../assets/met.png")
 suelo_image = pygame.image.load("../assets/suelo.png")
 fondo_image = pygame.image.load("../assets/fondo.png")
 pygame.init()
-
-# Clase para manejar la conexión de red
-class Network:
-    def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "localhost"
-        self.port = 5555
-        self.addr = (self.server, self.port)
-        self.pos = self.connect()
-
-    def getPos(self):
-        return self.pos
-
-    def connect(self):
-        try:
-            self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
-        except:
-            pass
-
-    def send(self, data):
-        try:
-            self.client.send(str.encode(data))
-            return self.client.recv(2048).decode()
-        except socket.error as e:
-            print(e)
-
 # Definir la pantalla
 width = 800
 height = 600
