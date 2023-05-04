@@ -1,36 +1,13 @@
 import pygame
-import socket
-suelo_image = pygame.image.load("../assets/suelo.png")
-fondo_image = pygame.image.load("../assets/fondo.png")
-meteorito_image = pygame.image.load("../assets/met.png")
+import random
+from network import Network
+
+meteorito_img = pygame.image.load("assets/met.png")
+suelo_image = pygame.image.load("assets/suelo.png")
+fondo_image = pygame.image.load("assets/fondo.png")
+#  meteorito_image = pygame.image.load("../assets/met.png")
 
 pygame.init()
-# Clase para manejar la conexión de red
-class Network:
-    def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "localhost"
-        self.port = 5555
-        self.addr = (self.server, self.port)
-        self.pos = self.connect()
-
-    def getPos(self):
-        return self.pos
-
-    def connect(self):
-        try:
-            self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
-        except:
-            pass
-
-    def send(self, data):
-        try:
-            self.client.send(str.encode(data))
-            return self.client.recv(2048).decode()
-        except socket.error as e:
-            print(e)
-
 # Definir la pantalla
 width = 800
 height = 600
@@ -47,30 +24,100 @@ piso_posicion_y = 550
 piso_ancho = 800
 piso_alto = 50
 
+
 ROJO = (255, 0, 0)
 
+# Meteoritos
+class Meteorito(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = meteorito_img
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(0, width - self.rect.width)
+        self.rect.y = -self.rect.height
+        self.velocidad = random.randint(1, 5)
+        self.avoided = False  # Nueva variable para indicar si el meteorito se evadió
+    
+    def update(self):
+        self.rect.y += self.velocidad
+        if self.rect.y > height:
+            self.rect.x = random.randrange(0, width - self.rect.width)
+            self.rect.y = -self.rect.height
+            self.velocidad = random.randint(1, 5)
+            self.avoided = False  # Reiniciar la variable avoided cuando el meteorito vuelve a aparecer
+
+    def check_collision(self):
+        global vidas
+        global score
+
+        for meteorito in meteoros:
+            if not meteorito.avoided and self.rect.colliderect(meteorito.rect):
+                vidas -= 1
+                meteorito.rect.x = random.randrange(0, width - meteorito.rect.width)
+                meteorito.rect.y = -meteorito.rect.height
+                meteorito.velocidad = random.randint(1, 5)
+                meteorito.avoided = False
+            elif not meteorito.avoided and meteorito.rect.bottom >= self.rect.top and meteorito.rect.left > self.rect.left and meteorito.rect.right < self.rect.right:
+                score += 1
+                meteorito.avoided = False
+            elif meteorito.rect.bottom < self.rect.top and not meteorito.avoided:
+                score += 1
+                meteorito.avoided = True
+
+            # if self.rect.colliderect(meteorito.rect):
+            #     vidas -= 1
+            #     meteorito.rect.x = random.randrange(0, width - meteorito.rect.width)
+            #     meteorito.rect.y = -meteorito.rect.height
+            #     meteorito.velocidad = random.randint(1, 5)
+            #     meteorito.avoided = False  # Reiniciar la variable avoided cuando se produce una colisión
+            # elif meteorito.rect.bottom >= self.rect.top and meteorito.rect.left > self.rect.left and meteorito.rect.right < self.rect.right:
+            #     score += 1
+            #     meteorito.avoided = False  # Reiniciar la variable avoided cuando se produce una colisión
+            # elif meteorito.rect.bottom < self.rect.top and not meteorito.avoided:
+            #     score += 1
+            #     meteorito.avoided = True  # Establecer avoided en True cuando el meteorito se evadió
+
+meteoros = pygame.sprite.Group()
+for _ in range(5):
+    meteoros.add(Meteorito())
+
+    
 # Función para dibujar el piso en la pantalla
 def dibujar_piso(x, y):
    win.blit(suelo_image, (x, y))
+
+# Definir el número de vidas
+vidas = 3
+score = 0
+fuente_vidas = pygame.font.SysFont('comicsans', 30)
 
 
 # Clase para manejar los jugadores
 class Player():
     def __init__(self, x, y, width, height, color, image,text):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.color = color
-            self.image = image
-            self.rect = pygame.Rect(x, y, width, height)
-            self.vel = 3
-            self.facing_left = False
-            self.text = text
-
-
-
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.image = image
+        self.rect = pygame.Rect(x, y, width, height)
+        self.vel = 3
+        self.facing_left = False
+        self.text = text
+        #self.score = 0  # Variable de contador de puntos
+        
     def draw(self, win):
+        vidas_text = fuente_vidas.render('Vidas: ' + str(vidas), True, (255, 255, 255))
+        win.blit(vidas_text, (10, 10))
+        
+        # Dibujar el puntaje en la pantalla
+        score_text = fuente_vidas.render('Puntaje: ' + str(score), True, (255, 255, 255))
+        win.blit(score_text, (width - score_text.get_width() - 10, 10))
+        
+        meteoros.update()
+        meteoros.draw(win)
+
         dibujar_piso(piso_posicion_x, piso_posicion_y)
         win.blit(self.text, (self.x + 10, self.y - 30))  # Dibujar el texto en la pantalla
         if self.facing_left:
@@ -93,11 +140,28 @@ class Player():
             self.x = 0
         elif self.x > width - self.width:
             self.x = width - self.width
-
+       
         self.update()
+        self.check_collision()
+
 
     def update(self):
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def check_collision(self):
+        global vidas
+        global score
+        
+        for meteorito in meteoros:
+            if self.rect.colliderect(meteorito.rect):
+                vidas -= 1
+                meteorito.rect.x = random.randrange(0, width - meteorito.rect.width)
+                meteorito.rect.y = -meteorito.rect.height
+                meteorito.velocidad = random.randint(1, 5)
+            elif meteorito.rect.bottom < self.rect.top and not meteorito.avoided:
+                score += 1
+                meteorito.avoided = True  # Establecer avoided en True cuando el meteorito se evadió
+
 
 # Funciones para convertir las posiciones de texto a tuplas y viceversa
 def read_pos(str):
@@ -109,15 +173,15 @@ def make_pos(tup):
 
 # Función para dibujar los elementos en pantalla
 def redrawWindow(win, player, player2):
+    
     # Dibujar la imagen de fondo
-    win.blit(fondo_image, (0, 0))
+    win.blit(fondo_image, (0, 0))    
 
     player.draw(win)
     player2.draw(win)
 
-    dibujar_piso(piso_posicion_x, piso_posicion_y)
-    #win.blit(suelo_image, (0,0))
     pygame.display.update()
+
 
 # Función principal del programa
 def main():
@@ -129,13 +193,17 @@ def main():
     DV_text = pygame.font.SysFont('comicsans', 20).render('TU', True, (255, 255, 255))
     DM_text = pygame.font.SysFont('comicsans', 20).render('OTRO', True, (255, 255, 255))
     # posicion del player
-    DV_image = pygame.image.load("../assets/DV.png")
-    DM_image = pygame.image.load("../assets/DM.png")
+    DV_image = pygame.image.load("assets/DV.png")
+    DM_image = pygame.image.load("assets/DM.png")
 
     p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, "yo")
     p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image,"rival")
-    pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
-    pygame.mixer.music.play(loops=-1)
+    # pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
+    # pygame.mixer.music.play(loops=-1)
+    # obstaculos.generar_obstaculos(num_obstaculos=2,pantalla_ancho=piso_ancho,pantalla_alto=600)
+#    obstaculos.dibujar_obstaculos(win)
+    
+
 
 
     p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, DV_text)
@@ -144,6 +212,8 @@ def main():
 
     while run:
         clock.tick(60)
+
+
 
         # Actualizar la posición del jugador remoto
         p2Pos = read_pos(n.send(make_pos((p.x, p.y))))
@@ -154,11 +224,22 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+
+        # for event in pygame.event.get():
+        #     if event.type == pygame.QUIT:
+        #         run = False
+        #         pygame.quit()
 
         # Mover al jugador local
         p.move()
+
         # Dibujar los elementos en pantalla
         redrawWindow(win, p, p2)
+
+
+
 pygame.mixer.init()
 main()

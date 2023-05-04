@@ -3,7 +3,7 @@ from _thread import *
 import sys
 
 ''' Poner direccion ip en la que esta conectado esta pc ipconfig IPv4'''
-server = "localhost"
+server = "10.31.141.17"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,6 +34,7 @@ def threaded_client(conn, player):
 
             if not data:
                 print("Desconectado")
+                quit()
                 break
             else:
                 if player == 1:
@@ -50,6 +51,7 @@ def threaded_client(conn, player):
 
     print("Conexion perdida")
     conn.close()
+    quit()
 
 currentPlayer = 0
 while True:
