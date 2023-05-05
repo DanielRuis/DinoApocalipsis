@@ -3,7 +3,7 @@ from _thread import *
 import sys
 
 ''' Poner direccion ip en la que esta conectado esta pc ipconfig IPv4'''
-server = "10.31.141.17"
+server = "localhost"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,7 +23,8 @@ def read_pos(str):
 def make_pos(tup):
     return str(tup[0]) + "," + str(tup[1])
 
-pos = [(0,0),(100,100)]
+pos = [(0,0),(-100,-100)]
+
 def threaded_client(conn, player):
     conn.send(str.encode(make_pos(pos[player])))
     reply = ""
