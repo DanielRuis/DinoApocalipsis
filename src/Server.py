@@ -1,6 +1,6 @@
 import socket
 from _thread import *
-import sys
+from meteorito import Meteorito
 
 ''' Poner direccion ip en la que esta conectado esta pc ipconfig IPv4'''
 server = "localhost"

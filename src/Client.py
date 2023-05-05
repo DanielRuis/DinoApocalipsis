@@ -1,8 +1,9 @@
 import pygame
 import random
 from network import Network
+from meteorito import Meteorito
 
-meteorito_img = pygame.image.load("../assets/met.png")
+
 suelo_image = pygame.image.load("../assets/suelo.png")
 fondo_image = pygame.image.load("../assets/fondo.png")
 
@@ -30,7 +31,7 @@ piso_alto = 50
 vidas = 3
 
 # inicio del puntaje
-score = 0
+score = -5
 fuente_vidas = pygame.font.SysFont('comicsans', 30)
 
 # imagenes de los dinosaurios 
@@ -40,6 +41,8 @@ DM_image = pygame.image.load("../assets/DM.png")
 # tiempo de espera para inicial la caida de meteroritos
 TIEMPO_ESPERA = 5000
 caida_meteoritos = False
+     # Dibujar la puntacion de vida
+vidas_text = fuente_vidas.render('Vidas: ' + str(vidas), True, (255, 255, 255))
 
 # Función para verificar si ha pasado suficiente tiempo y comenzar a hacer caer los meteoritos
 
@@ -51,37 +54,22 @@ def verificar_tiempo():
     if tiempo_actual >= TIEMPO_ESPERA:
         caida_meteoritos = True
 
-# clase meteorito
+# Definir la función para mostrar el mensaje de "Perdiste"
+def mostrar_perdiste():
+    font = pygame.font.Font(None, 36)  # Crear una fuente
+    texto = font.render("Perdiste", True, (255, 0, 0))  # Crear el objeto de texto
+    texto_rect = texto.get_rect(center=(width/2, height/2))  # Obtener el rectángulo del objeto de texto
+    win.blit(texto, texto_rect)  # Dibujar el objeto de texto en el centro de la pantalla
 
-
-class Meteorito(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = meteorito_img
-        self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(0, width - self.rect.width)
-        self.rect.y = -self.rect.height
-        self.velocidad = random.randint(1, 5)
-        self.avoided = False  # Nueva variable para indicar si el meteorito se evadió
-
-    def update(self):
-        self.rect.y += self.velocidad
-        if self.rect.y > height:
-            self.rect.x = random.randrange(0, width - self.rect.width)
-            self.rect.y = -self.rect.height
-            self.velocidad = random.randint(1, 5)
-            self.avoided = False  # Reiniciar la variable avoided cuando el meteorito vuelve a aparecer
-
-
-meteoros = pygame.sprite.Group()
-for _ in range(5):
-    meteoros.add(Meteorito())
 
 
 # Función para dibujar el piso en la pantalla
 def dibujar_piso(x, y):
     win.blit(suelo_image, (x, y))
 
+meteoros = pygame.sprite.Group()
+for _ in range(5):
+    meteoros.add(Meteorito())
 
 # Clase para manejar los jugadores
 class Player():
@@ -102,31 +90,38 @@ class Player():
         self.time_remaining = TIEMPO_ESPERA
 
     def draw(self, win):
-
-        # Dibujar la puntacion de vida
-        vidas_text = fuente_vidas.render(
-            'Vidas: ' + str(vidas), True, (255, 255, 255))
+        
+        vidas_text = fuente_vidas.render('Vidas: ' + str(vidas), True, (255, 255, 255))
+        win.blit(vidas_text, (width - vidas_text.get_width() - 150, -150))
         win.blit(vidas_text, (10, 10))
 
-        # Dibujar el puntaje en la pantalla
-        score_text = fuente_vidas.render(
-            'Puntaje: ' + str(score), True, (255, 255, 255))
-        win.blit(score_text, (width - score_text.get_width() - 10, 10))
+        if vidas == 0:
+            mostrar_perdiste()
+    # Dibujar el puntaje en la pantalla
+            score_text = fuente_vidas.render('Puntaje: ' + str(score), True, (255, 255, 255))
+            win.blit(score_text, (width - score_text.get_width() - 350, 250))
+
+        else:
+    # Dibujar el puntaje en la pantalla
+            score_text = fuente_vidas.render('Puntaje: ' + str(score), True, (255, 255, 255))
+            win.blit(score_text, (width - score_text.get_width() - 10, 10))
+
 
         # dibujar el texto de inicia en
         current_time = pygame.time.get_ticks()
         time_elapsed = current_time - self.start_time
         time_remaining = max(0, int((TIEMPO_ESPERA - time_elapsed) / 1000))
+        
         time_text = fuente_vidas.render(
             'Inicia en : ' + str(time_remaining), True, (255, 255, 255))
-        win.blit(time_text, (width - time_text.get_width() - 10, 50))
+        
 # llama la verificacion del tiempo
         verificar_tiempo()
         if caida_meteoritos:
             meteoros.update()
             meteoros.draw(win)
         else:
-            win.blit(time_text, (width - time_text.get_width() - 10, 50))
+            win.blit(time_text, (width - time_text.get_width() - 350, 50))
 
         # dibuja el piso
         dibujar_piso(piso_posicion_x, piso_posicion_y)
@@ -162,6 +157,7 @@ class Player():
     def update(self):
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
+
     def check_collision(self):
         global vidas
         global score
@@ -174,6 +170,7 @@ class Player():
                     0, width - meteorito.rect.width)
                 meteorito.rect.y = -meteorito.rect.height
                 meteorito.velocidad = random.randint(1, 5)
+               
             elif meteorito.rect.bottom < self.rect.top and not meteorito.avoided:
                 #aumenta la puntuacion cuando sobrepasa el limite del jugador
                 score += 1
@@ -184,6 +181,7 @@ class Player():
 def read_pos(str):
     str = str.split(",")
     return int(str[0]), int(str[1])
+
 
 
 def make_pos(tup):
@@ -197,6 +195,11 @@ def redrawWindow(win, player, player2):
 
     player.draw(win)
     player2.draw(win)
+    
+    if vidas == 0:
+ # Establecer la posición del jugador fuera de la pantalla
+        player.x = -800
+        player.y = -800
 
     pygame.display.update()
 
@@ -243,6 +246,7 @@ def main():
 
         # Dibujar los elementos en pantalla
         redrawWindow(win, p, p2)
+ 
 
 pygame.mixer.init()
 main()
