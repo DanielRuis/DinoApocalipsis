@@ -2,12 +2,17 @@ import pygame
 import random
 from network import Network
 
-meteorito_img = pygame.image.load("assets/met.png")
-suelo_image = pygame.image.load("assets/suelo.png")
-fondo_image = pygame.image.load("assets/fondo.png")
-#  meteorito_image = pygame.image.load("../assets/met.png")
+
+meteorito_img = pygame.image.load("../assets/met.png")
+suelo_image = pygame.image.load("../assets/suelo.png")
+fondo_image = pygame.image.load("../assets/fondo.png")
 
 pygame.init()
+pygame.mixer.init()  # Inicializar el mezclador de audio de pygame
+
+# Cargar el archivo de sonido de las pisadas
+pisadas_sound = pygame.mixer.Sound("../assets/Pisadas.ogg")
+pisadas_sound.set_volume(0.2)
 # Definir la pantalla
 width = 800
 height = 600
@@ -134,7 +139,9 @@ class Player():
         if keys[pygame.K_RIGHT]:
             self.x += self.vel
             self.facing_left = False
-
+        if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
+            # Reproducir el sonido de las pisadas
+            pisadas_sound.play()
         # Limitar la posición del jugador a la pantalla
         if self.x < 0:
             self.x = 0
@@ -193,13 +200,14 @@ def main():
     DV_text = pygame.font.SysFont('comicsans', 20).render('TU', True, (255, 255, 255))
     DM_text = pygame.font.SysFont('comicsans', 20).render('OTRO', True, (255, 255, 255))
     # posicion del player
-    DV_image = pygame.image.load("assets/DV.png")
-    DM_image = pygame.image.load("assets/DM.png")
+    DV_image = pygame.image.load("../assets/DV.png")
+    DM_image = pygame.image.load("../assets/DM.png")
 
     p = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (180, 255, 255), DV_image, "yo")
     p2 = Player(jugador_posicion_x, jugador_posicion_y, 50, 100, (0, 0, 0), DM_image,"rival")
-    # pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
-    # pygame.mixer.music.play(loops=-1)
+    pygame.mixer.music.load("../assets/Rip _ Tear(MP3_70K).mp3")
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(loops=-1)
     # obstaculos.generar_obstaculos(num_obstaculos=2,pantalla_ancho=piso_ancho,pantalla_alto=600)
 #    obstaculos.dibujar_obstaculos(win)
     
