@@ -1,149 +1,73 @@
 import pygame
-import socket
+import random
 
-# Clase para manejar la conexión de red
-class Network:
-    def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "localhost"
-        self.port = 5555
-        self.addr = (self.server, self.port)
-        self.pos = self.connect()
-
-    def getPos(self):
-        return self.pos
-
-    def connect(self):
-        try:
-            self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
-        except:
-            pass
-
-    def send(self, data):
-        try:
-            self.client.send(str.encode(data))
-            return self.client.recv(2048).decode()
-        except socket.error as e:
-            print(e)
-
-# Definir la pantalla
-width = 500
+# Definir el tamaño de la pantalla
+width = 800
 height = 600
-win = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Client")
 
-# Clase para manejar los jugadores
-class Player():
-    def __init__(self, x, y, width, height, color):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.color = color
-        self.rect = pygame.Rect(x, y, width, height)
-        self.vel = 3
+# Inicializar pygame
+pygame.init()
 
-    def draw(self, win):
-        pygame.draw.rect(win, self.color, self.rect)
+# Crear la ventana
+screen = pygame.display.set_mode((width, height))
 
-    def move(self):
-        keys = pygame.key.get_pressed()
+# Cargar la imagen del meteorito
+meteorito_img = pygame.image.load("../assets/met.png")
 
-        if keys[pygame.K_LEFT]:
-            self.x -= self.vel
-        if keys[pygame.K_RIGHT]:
-            self.x += self.vel
-
-        # Limitar la posición del jugador a la pantalla
-        if self.x < 0:
-            self.x = 0
-        elif self.x > width - self.width:
-            self.x = width - self.width
-
-        self.update()
+# Definir la clase Meteorito
+class Meteorito(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = meteorito_img
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(0, width - self.rect.width)
+        self.rect.y = -self.rect.height
+        self.velocidad = random.randint(1, 5)
+        self.avoided = False  # Nueva variable para indicar si el meteorito se evadió
 
     def update(self):
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-#Clase para la pantalla de carga
-class LoadingScreen():
-    def __init__(self, text, font_size, x, y):
-        self.text = text
-        self.font_size = font_size
-        self.x = x
-        self.y = y
-        self.font = pygame.font.SysFont(None, self.font_size)
-        self.surface = self.font.render(self.text, True, (255, 255, 255))
+        self.rect.y += self.velocidad
+        if self.rect.y > height:
+            self.rect.x = random.randrange(0, width - self.rect.width)
+            self.rect.y = -self.rect.height
+            self.velocidad = random.randint(1, 5)
+            self.avoided = False  # Reiniciar la variable avoided cuando el meteorito vuelve a aparecer
 
-    def draw(self, win):
-        win.blit(self.surface, (self.x, self.y))
+# Variables globales
+tiempo_anterior = pygame.time.get_ticks()  # Tiempo en milisegundos desde que se inició el juego
+tiempo_aumento_velocidad = 10000  # 10 segundos en milisegundos
+velocidad_inicial = 1
+incremento_velocidad = 1
 
-# Funciones para convertir las posiciones de texto a tuplas y viceversa
-def read_pos(str):
-    str = str.split(",")
-    return int(str[0]), int(str[1])
+# Crear un grupo para los meteoritos
+meteoritos_group = pygame.sprite.Group()
 
-def make_pos(tup):
-    return str(tup[0]) + "," + str(tup[1])
+# Crear meteoritos y agregarlos al grupo
+for i in range(1):
+    meteorito = Meteorito()
+    meteoritos_group.add(meteorito)
 
-# Función para dibujar los elementos en pantalla
-def redrawWindow(win, player, player2):
-    win.fill((128, 128, 128))
-    player.draw(win)
-    player2.draw(win)
-    pygame.display.update()  
+# Bucle principal del juego
+while True:
+    # Manejar eventos
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
 
-# Función principal del programa
-def main():
-    run = True
-    n = Network()
+    # Actualizar meteoritos
+    meteoritos_group.update()
 
-    # Crear la pantalla de carga
-    loading_text = LoadingScreen("Esperando a que se conecte el otro jugador...", 30, 100, 200)
+    # Verificar si ha pasado el tiempo necesario para aumentar la velocidad
+    tiempo_actual = pygame.time.get_ticks()
+    if tiempo_actual - tiempo_anterior >= tiempo_aumento_velocidad:
+        tiempo_anterior = tiempo_actual  # Actualizar el tiempo anterior
+        for meteorito in meteoritos_group:
+            meteorito.velocidad += incremento_velocidad  # Aumentar la velocidad de cada meteorito
 
-    # Mostrar la pantalla de carga mientras se espera a que los dos jugadores se conecten
-    connected = False
-    while not connected:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
+    # Dibujar los meteoritos en la pantalla
+    screen.fill((0, 0, 0))
+    meteoritos_group.draw(screen)
 
-        # Verificar si se ha recibido un mensaje del otro jugador
-        data = n.client.recv(2048).decode()
-        if data == 'Connected':
-            connected = True
-
-        # Dibujar la pantalla de carga
-        loading_text.draw(win)
-        pygame.display.update()
-
-    # Iniciar el juego cuando ambos jugadores estén conectados
-    p = Player(0, 500, 50, 100, (180, 255, 255))
-    p2 = Player(200, 500, 50, 100, (0, 0, 0))
-
-    clock = pygame.time.Clock()
-
-    while run:
-        clock.tick(60)
-
-        # Actualizar la posición del jugador remoto
-        p2Pos = read_pos(n.send(make_pos((p.x, p.y))))
-        p2.x = p2Pos[0]
-        p2.y = p2Pos[1]
-        p2.update()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
-
-        # Mover al jugador local
-        p.move()
-
-        # Dibujar los elementos en pantalla
-        redrawWindow(win, p, p2)
-
-    pygame.quit()
-
-main()
+    # Actualizar la pantalla
+    pygame.display.flip()
