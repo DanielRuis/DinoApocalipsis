@@ -48,6 +48,7 @@ DM_image = pygame.image.load("../assets/DM.png")
 TIEMPO_ESPERA = 5000
 caida_meteoritos = False
      # Dibujar la puntacion de vida
+
 vidas_text = fuente_vidas.render('Vidas: ' + str(vidas), True, (255, 255, 255))
 
 # Función para verificar si ha pasado suficiente tiempo y comenzar a hacer caer los meteoritos
@@ -117,7 +118,8 @@ class Player():
         current_time = pygame.time.get_ticks()
         time_elapsed = current_time - self.start_time
         time_remaining = max(0, int((TIEMPO_ESPERA - time_elapsed) / 1000))
-        
+        instructions = fuente_vidas.render(
+            '->Derecha   <-Izquierda', True, (255, 255, 255))
         time_text = fuente_vidas.render(
             'Inicia en : ' + str(time_remaining), True, (255, 255, 255))
         
@@ -127,6 +129,7 @@ class Player():
             meteoros.update()
             meteoros.draw(win)
         else:
+            win.blit(instructions, (width - time_text.get_width() - 390, 10))
             win.blit(time_text, (width - time_text.get_width() - 350, 50))
 
         # dibuja el piso

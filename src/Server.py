@@ -3,7 +3,7 @@ from _thread import *
 from meteorito import Meteorito
 
 ''' Poner direccion ip en la que esta conectado esta pc ipconfig IPv4'''
-server = "localhost"
+server = "192.168.182.39"
 port = 5557
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
